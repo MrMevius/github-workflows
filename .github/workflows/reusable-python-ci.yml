@@ -1,0 +1,57 @@
+name: Reusable Python CI
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: Python version
+        required: false
+        type: string
+        default: "3.11"
+      working-directory:
+        description: Directory containing the Python project
+        required: false
+        type: string
+        default: "."
+      cache-dependency-path:
+        description: Dependency file used for pip cache invalidation
+        required: false
+        type: string
+        default: "pyproject.toml"
+      install-command:
+        description: Dependency installation command
+        required: false
+        type: string
+        default: "pip install -e .[dev]"
+      test-command:
+        description: Test command
+        required: false
+        type: string
+        default: "pytest"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: pip
+          cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.install-command }}
+
+      - name: Run tests
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.test-command }}

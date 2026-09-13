@@ -1,0 +1,40 @@
+name: Reusable Docker Compose Smoke
+
+on:
+  workflow_call:
+    inputs:
+      compose-file:
+        description: Docker Compose file
+        required: false
+        type: string
+        default: "docker-compose.yml"
+      env-example:
+        description: Example environment file copied to .env
+        required: false
+        type: string
+        default: ".env.example"
+      services:
+        description: Space-separated services to build
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  compose-smoke:
+    name: Docker Compose smoke build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Prepare environment file
+        run: cp "${{ inputs.env-example }}" .env
+
+      - name: Validate Compose configuration
+        run: docker compose -f "${{ inputs.compose-file }}" config >/dev/null
+
+      - name: Build Docker services
+        run: docker compose -f "${{ inputs.compose-file }}" build ${{ inputs.services }}

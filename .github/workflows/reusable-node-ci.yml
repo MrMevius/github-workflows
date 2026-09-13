@@ -1,0 +1,61 @@
+name: Reusable Node CI
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: Node.js version
+        required: false
+        type: string
+        default: "20"
+      working-directory:
+        description: Directory containing the Node project
+        required: false
+        type: string
+        default: "."
+      cache-dependency-path:
+        description: Lockfile used for npm cache invalidation
+        required: false
+        type: string
+        default: "package-lock.json"
+      test-command:
+        description: Test command
+        required: false
+        type: string
+        default: "npm test"
+      build-command:
+        description: Build command
+        required: false
+        type: string
+        default: "npm run build"
+
+permissions:
+  contents: read
+
+jobs:
+  test-build:
+    name: Node tests and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+          cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.test-command }}
+
+      - name: Build
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.build-command }}
