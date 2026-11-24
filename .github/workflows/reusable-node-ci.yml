@@ -3,6 +3,10 @@ name: Reusable Node CI
 on:
   workflow_call:
     inputs:
+      mevius-ci:
+        description: Use the caller repository’s private Mevius runner
+        type: boolean
+        default: false
       node-version:
         description: Node.js version
         required: false
@@ -35,14 +39,16 @@ permissions:
 jobs:
   test-build:
     name: Node tests and build
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.mevius-ci && fromJSON('["self-hosted","Linux","X64","mevius-ci"]') || 'ubuntu-latest' }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: ${{ !inputs.mevius-ci }}
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: ${{ inputs.node-version }}
           cache: npm

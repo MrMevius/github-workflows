@@ -3,6 +3,10 @@ name: Reusable Docker Compose Smoke
 on:
   workflow_call:
     inputs:
+      mevius-ci:
+        description: Use the caller repository’s private Mevius runner
+        type: boolean
+        default: false
       compose-file:
         description: Docker Compose file
         required: false
@@ -24,11 +28,13 @@ permissions:
 jobs:
   compose-smoke:
     name: Docker Compose smoke build
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.mevius-ci && fromJSON('["self-hosted","Linux","X64","mevius-ci"]') || 'ubuntu-latest' }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: ${{ !inputs.mevius-ci }}
 
       - name: Prepare environment file
         run: cp "${{ inputs.env-example }}" .env
